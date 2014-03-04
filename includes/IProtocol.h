@@ -4,7 +4,7 @@
 
 #include "INode.h"
 #include "SettingsParser.h"
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 #include <boost/bind.hpp>
 
 namespace ydle {
@@ -33,7 +33,7 @@ protected:
 
 	
 protected:
-	boost::signal1<void,Frame_t*> _signalNewFrame;
+	boost::signals2::signal<void (Frame_t*) > _signalNewFrame;
 	
 	
 } ;
