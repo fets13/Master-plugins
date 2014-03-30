@@ -1,7 +1,7 @@
 BASE_DIR=../..
 NAME = $(shell basename $$PWD)
 OBJS_DIR=$(BASE_DIR)/bin/objs/$(NAME)
-DEST_DIR=$(BASE_DIR)/bin/plugins
+DEST_DIR=$(BASE_DIR)/bin/scripts/plugins
 INC_DIR=$(BASE_DIR)/includes
 
 CXX=g++

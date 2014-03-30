@@ -42,13 +42,19 @@ void exit_handler(int s) {
 
 int main(int argc, char** argv)
 {
-	Master master (argc, argv) ;
-
 
 	if (setuid(0)) {
 		perror("setuid");
 		return 1;
 	}
+	//End the program if the wiringPi library is not found
+	if (wiringPiSetup() == -1) {
+		YDLE_FATAL << "Error : Library wiringPi not found" << std::endl;
+		return -1;
+	}
+
+	Master master (argc, argv) ;
+
 
 	// Config read ok, adjust the log level according to the user configuration
 
@@ -61,11 +67,6 @@ int main(int argc, char** argv)
 
 	//log("Program start");
 	YDLE_DEBUG << "Program start";
-	//End the program if the wiringPi library is not found
-	if (wiringPiSetup() == -1) {
-		YDLE_FATAL << "Error : Library wiringPi not found" << std::endl;
-		return -1;
-	}
 
 	WebServer::HTTPServer::HTTPServerOptions options;
 	int port = PARAM_INT("port");
@@ -81,7 +82,7 @@ int main(int argc, char** argv)
 		server->Init();
 		server->Run();
 
-		master.StartComm() ;
+		master.Start() ;
 
 		// TODO: (Denia) Temporaire
 		while (1) {
@@ -114,6 +115,7 @@ Master::Master (int argc, char **argv)
 
 	InitPlugins () ;
 	InitProtocols () ;
+	InitFeatures () ;
 	_nodesManager.Init (&_kernel) ;
 }
 
@@ -128,6 +130,26 @@ printf ("Kernel : protocols=%u \n", l.size()) ;
 		// comment if you don't want debug
 		rf->debugMode();
 		rf->Start() ;
+	}
+}
+
+void	Master::InitFeatures ()
+{
+	Kernel::FeatureList & l = _kernel.Features() ;
+printf ("Kernel : features=%u \n", l.size()) ;
+	for( Kernel::FeatureList::iterator it = l.begin(); it != l.end(); ++it) {
+		IFeature * f = *it ;
+		printf ("\tFeature : %s \n", f->Name().c_str()) ;
+		f->Init () ;
+	}
+}
+
+void	Master::StartFeatures ()
+{
+	Kernel::FeatureList & l = _kernel.Features() ;
+	for( Kernel::FeatureList::iterator it = l.begin(); it != l.end(); ++it) {
+		IFeature * f = *it ;
+		f->Start () ;
 	}
 }
 void decoder (string & s)
@@ -145,6 +167,12 @@ void decoder (string & s)
 
     std::cout << s.substr(start, end);
 }
+void Master::Start()
+{
+	StartFeatures () ;
+	StartComm () ;
+}
+
 void Master::StartComm()
 {
 	std::stringstream temp;
@@ -158,7 +186,7 @@ void Master::StartComm()
 		// subscrbe Ihm to protocols notifications
 		rf->Subscribe (_pCom.get(), &IhmCommunicationThread::AddToListCmd) ;
 	}
-	_pCom->start();
+	_pCom->Start();
 }
 
 void Master::InitLog () 

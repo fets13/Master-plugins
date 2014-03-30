@@ -60,6 +60,8 @@ public:
 	virtual std::string Name ()  = 0 ;
 	virtual void FormatCmd (int target, int sender, int param, int cmd)  = 0 ;
 	virtual int GetData (Frame_t *, tNodeDataList & list)  = 0 ;
+protected:
+	void SetVal (int node, const char *name, double val) ;
 } ;
 
 

@@ -18,19 +18,18 @@ public:
 	void *	ExecFunc (PCSTR funcName) ;
 	tDynLoadFunc	GetSymbol (PCSTR funcName) ;
 
-	template <typename tParam>
-	bool	ExecFuncTpl (PCSTR funcName, tParam param)
+	template <typename tRet, typename tParam>
+	tRet	ExecFuncTpl (PCSTR funcName, tParam param)
 	{
-		typedef int (* tPtrFunc) (tParam) ;
+		typedef tRet (* tPtrFunc) (tParam) ;
 		tPtrFunc allocator = (tPtrFunc)GetSymbol (funcName) ;
 		if (allocator == NULL) {
 			std::string s ("ExecFuncTpl :") ;
 			s += std::string(funcName) + " FAILED " ;
 			throw std::runtime_error(s);
-			return false ;
+			return tRet(false) ;
 		}
-	    allocator (param) ;
-		return true ;
+	    return allocator (param) ;
 	}
 
 protected:

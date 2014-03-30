@@ -11,26 +11,24 @@
 #include <map>
 #include <list>
 #include <vector>
-#include <thread>
+#include "Thread.h"
 
 #include "INode.h"
 #include "NodesManager.h"
 
 namespace ydle {
 
-class IhmCommunicationThread {
+class IhmCommunicationThread : public Thread {
 public:
 	IhmCommunicationThread(std::string web_address, NodesManager * nodeMgr);
 	virtual ~IhmCommunicationThread();
-	void run();
-	void start();
-	void stop();
 	int putFrame(Frame_t& frame);
 	int extractData(Frame_t& frame, int index,int &itype,int &ivalue);
 	void AddToListCmd(Frame_t * cmd) ;
+protected:
+	virtual void ThreadBegin ();
+	virtual void ThreadAction ();
 private:
-	bool running;
-	std::thread *thread_t;
 	std::string web_address;
 	std::list<Frame_t> ListCmd;
 	pthread_mutex_t listcmd_mutex ;

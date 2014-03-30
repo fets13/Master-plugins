@@ -1,16 +1,10 @@
 
 #include "node0.5.h"
+#include "logging.5.h"
+#include <sstream>
 
 using namespace ydle ;
-class Node0_5 : public INode 
-{
-public:
-	std::string Name () { return "NODE VERSION 0.5" ; }
-	virtual void FormatCmd (int target, int sender, int param, int cmd) {};
-	virtual int GetData (Frame_t *, tNodeDataList & list) ;
-private:
-	int ExtractData(uint8_t * & ptr, int &itype, float &fvalue) ;
-} ;
+using namespace std ;
 
 int	LoadPlugins (Kernel & k)
 {
@@ -32,8 +26,12 @@ int Node0_5::GetData (Frame_t *frame, tNodeDataList & l)
 	int	type = 0 ;
 	int index = 0 ;
 	float	fValue ;
+	stringstream s ;
 	do {
-		ExtractData (pData, type, fValue) ;
+		if (!ExtractData (pData, type, fValue)) {
+			YDLE_DEBUG << "Node0_5.ExtractData FAILED : Weird value type in the frame : " << type;
+			continue ;
+		}
 		printf ("%s:%d  index=%d type:%d value:%g\n", __FILE__, __LINE__, index, type, fValue) ;
 
 		sNodeData nodeData ;
@@ -41,7 +39,10 @@ int Node0_5::GetData (Frame_t *frame, tNodeDataList & l)
 		nodeData.val = fValue ;
 		l.push_back (nodeData) ;
 
-index++ ;
+		index++ ;
+		s << "value" << index ;
+		SetVal (frame->sender, s.str().c_str(), fValue) ;
+
 	} while (pData < pFin) ;
 
 	return l.size() ;
@@ -50,7 +51,7 @@ index++ ;
  * Extract the value from the frame
  * Yes, I know this function should not be here. Denia.
  * */
-int Node0_5::ExtractData(uint8_t * & ptr, int &itype, float &fvalue)
+bool Node0_5::ExtractData(uint8_t * & ptr, int &itype, float &fvalue)
 {
 	int ivalue ;
 
@@ -102,10 +103,14 @@ int Node0_5::ExtractData(uint8_t * & ptr, int &itype, float &fvalue)
 		ptr++;
 		fvalue = float(ivalue) ;
 		break;
+
+	default:
+		YDLE_DEBUG << "Weird value type in the frame : " << itype;
+		return false;
 	}
 
 
-	return 0;
+	return true;
 }
 
 

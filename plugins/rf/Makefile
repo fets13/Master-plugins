@@ -1,10 +1,10 @@
 BASE_DIR=../..
-OBJS_DIR=$(BASE_DIR)/bin/objs
+NAME = $(shell basename $$PWD)
+OBJS_DIR=$(BASE_DIR)/bin/objs/$(NAME)
 DEST_DIR=$(BASE_DIR)/bin/plugins
 INC_DIR=$(BASE_DIR)/includes
 
 CXX=g++
-NAME = $(shell basename $$PWD)
 CFLAGS=-c -fPIC -g -O2 -Wall -DRASPBERRY -std=gnu++0x -fpermissive -I$(INC_DIR)
 
 LDFLAGS= -shared

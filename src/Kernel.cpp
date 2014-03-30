@@ -1,54 +1,25 @@
 #include "Kernel.h"
 #include "DynLoad.h"
-#include <list>
+#include "Dir.h"
 #include <stdexcept>
 #include <iostream>
 #include <dlfcn.h>
-#include <dirent.h>
-#include <fnmatch.h>
 
 using namespace std ;
 using namespace ydle ;
 
 Kernel::~Kernel ()
 {
-	this->Free (_nodes) ;
-	this->Free (_protocols) ;
 }
 
 
 
 void	Kernel::LoadPlugins (std::string & dir)
 {
-	list<string> files = list<string>();
+	StringList files ;
+	ListPlugins (dir.c_str(), files) ;
 
-	// open directory
-	DIR *dp;
-	struct dirent *dirp;
-	if((dp = opendir(dir.c_str())) == NULL) {
-		cout << "Error(" << errno << ") opening " << dir << endl;
-		return ;
-	}
-	// while there is an entry
-	while ((dirp = readdir(dp)) != NULL) {
-		// is the entry a regular file ?
-		if (dirp->d_type != DT_REG) continue ;
-		char * name = dirp->d_name ;
-		// ignore file not matching 'so' extension
-		if (fnmatch("*.so", name, FNM_CASEFOLD) != 0) continue ;
-
-			files.push_back(string(name));
-		string full = dir + "/" + dirp->d_name ;
-		Plugin * p = new Plugin (full) ;
-		if (p->Register(*this) ) {
-			this->_loadedPlugins.insert( PluginMap::value_type(dirp->d_name, p)) ;
-		}
-		else {
-			delete p ;
-		}
-	}
-#if 0
-	for( list<string>::iterator it = files.begin(); it != files.end(); ++it) {
+	for( StringList::iterator it = files.begin(); it != files.end(); ++it) {
 		string full = dir + "/" + it->c_str() ;
 		Plugin * p = new Plugin (full) ;
 		if (p->Register(*this) ) {
@@ -58,7 +29,7 @@ void	Kernel::LoadPlugins (std::string & dir)
 			delete p ;
 		}
 	}
-#endif
+	
 }
 
 Kernel::NodeList & Kernel::Nodes ()
@@ -66,10 +37,14 @@ Kernel::NodeList & Kernel::Nodes ()
 	return _nodes ;
 }
 
-
 Kernel::ProtocolList & Kernel::Protocols ()
 {
 	return _protocols ;
+}
+
+Kernel::FeatureList & Kernel::Features ()
+{
+	return _features ;
 }
 
 Kernel::PluginMap & Kernel::Plugins ()
@@ -95,15 +70,24 @@ IProtocol * Kernel::Protocol (string name)
 	return NULL ;
 }
 
+IFeature * Kernel::Feature (string name)
+{
+	for(FeatureList::iterator it = _features.begin(); it != _features.end(); ++it) {
+		IFeature * p = *it ;
+		if (name == p->Name()) return p ;
+	}
+	return NULL ;
+}
+
 
 
 Plugin::Plugin(string & path) : mDyn(path.c_str())
 {
 }
 
-bool Plugin::Register (Kernel & k)
+int Plugin::Register (Kernel & k)
 {
-		return mDyn.ExecFuncTpl<Kernel&>  ("LoadPlugins", (Kernel &)k) ;
+		return mDyn.ExecFuncTpl<int, Kernel&>  ("LoadPlugins", (Kernel &)k) ;
 }
 #if 0
   /// <summary>Shared library loading and access on windows</summary>

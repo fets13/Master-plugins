@@ -190,11 +190,6 @@ void protocolRF::sendBit(bool b)
 	}
 }
 
-void protocolRF::SendMsg (Frame_t & frame)
-{
-	memcpy (&m_sendframe, &frame, sizeof (Frame_t)) ;
-	transmit () ;
-}
 
 // ----------------------------------------------------------------------------
 /**
@@ -243,9 +238,6 @@ void protocolRF::transmit(bool bRetransmit)
 	//Lock reception when we end something
 	pthread_mutex_lock(&_mutexSynchro);
 
-//	scheduler_realtime();
-
-
 	// Sequence AGC
 	for (int x=0; x < 32; x++) { sendPair(true); }
 
@@ -259,7 +251,6 @@ void protocolRF::transmit(bool bRetransmit)
 
 	digitalWrite(m_pinTx, LOW);
 
-//	scheduler_standard ();
 
 //FETS		if(debugActivated) YDLE_DEBUG << ("end sending");
 
@@ -267,141 +258,6 @@ void protocolRF::transmit(bool bRetransmit)
 	pthread_mutex_unlock(&_mutexSynchro);
 }
 
-//TODO: Manque la gestion des erreurs!
-
-#if 0
-int protocolRF::extractData(int position, float & data){
-
-	float half =  (m_receivedframe.data[position] << 8) | m_receivedframe.data[position+1];
-	for(int i = 16; i>=0; --i){
-		bool t = (1<<i) & half ;
-		std::cout << t;
-	}
-	data = Float16To32 (half) ;
-	return 0;
-}
-
-int protocolRF::extractData(int position, int & data){
-	uint16_t b;
-	b = (m_receivedframe.data[position] << 8) | m_receivedframe.data[position+1];
-	data = b;
-	return 0;
-}
-
-// ----------------------------------------------------------------------------
-/**
-	   Function: extractData
-	   Inputs:  int index: index de la value recherche (0..29)
-				int itype: en retour type de la value
-				int ivalue: en retour, value
-				pBuffer : bufer to search in , if NULL then use m_receivedframe
-	   Outputs: 1 value trouve,0 non trouve,-1 no data
-
- */
-// ----------------------------------------------------------------------------
-int protocolRF::extractData(int index,int &itype,int &ivalue,uint8_t* pBuffer /*=NULL*/,int ilen /*=0*/)
-{
-	uint8_t* ptr;
-	bool bifValueisNegativ=false;
-	int iCurrentValueIndex=0;
-	bool bEndOfData=false;
-	int  iLenOfBuffer = 0;
-	int  iModifType=0;
-	int  iNbByteRest=0;
-
-	if(pBuffer==NULL)
-	{
-		ptr=m_receivedframe.data;
-		iLenOfBuffer=m_receivedframe.taille;
-	}	
-	else
-	{
-		iLenOfBuffer=ilen;
-		ptr=pBuffer;
-	}	
-
-	if(iLenOfBuffer <2) // Min 1 byte of data with the 1 bytes CRC always present, else there is no data
-		return -1;
-
-	while (!bEndOfData)
-	{
-		itype=(uint8_t)*ptr>>4;
-		bifValueisNegativ=false;
-
-		// This is a very ugly code :-( Must do something better
-		if(m_receivedframe.type==TYPE_CMD)
-		{
-			// Cmd type if always 12 bits signed value
-			iModifType=DATA_DEGREEC;
-		}
-		else if(m_receivedframe.type==TYPE_ETAT)
-		{
-			iModifType=itype;
-		}
-		else
-		{
-			iModifType=itype;
-		}
-
-		switch(iModifType)
-		{
-		// 4 bits no signed
-		case DATA_ETAT :
-			ivalue=*ptr&0x0F;
-			ptr++;
-			iNbByteRest--;
-			break;	
-
-			// 12 bits signed
-		case DATA_DEGREEC:
-		case DATA_DEGREEF :
-		case DATA_PERCENT :
-		case DATA_HUMIDITY:
-			if(*ptr&0x8)
-				bifValueisNegativ=true;
-			ivalue=(*ptr&0x07)<<8;
-			ptr++;
-			ivalue+=*ptr;
-			ptr++;
-			if(bifValueisNegativ)
-				ivalue=ivalue *(-1);
-			iNbByteRest-=2;
-			break;	
-
-			// 12 bits no signed
-		case DATA_DISTANCE:
-		case DATA_PRESSION:
-			ivalue=(*ptr&0x0F)<<8;
-			ptr++;
-			ivalue+=*ptr;
-			ptr++;
-			iNbByteRest-=2;
-			break;	
-
-			// 20 bits no signed
-		case DATA_WATT  :
-			ivalue=(*ptr&0x0F)<<16;
-			ptr++;
-			ivalue+=(*ptr)<<8;
-			ptr++;
-			ivalue+=*ptr;
-			ptr++;
-			iNbByteRest-=3;
-			break;	
-		}
-
-		if (index==iCurrentValueIndex)
-			return 1;
-
-		iCurrentValueIndex++;
-
-		if(iNbByteRest<1)
-			bEndOfData =true;;
-	}
-
-	return 0;	
-}
-#endif
 
 
 
@@ -761,6 +617,7 @@ void protocolRF::listenSignal()
 				}
 				else if(m_receivedframe.type == TYPE_ETAT_ACK)
 				{
+					YDLE_DEBUG << "New State/ACK frame ready to be sent :";
 					// Send ACK	
 					dataToFrame(m_receivedframe.sender,m_receivedframe.receptor,TYPE_ACK);				
 					delay (250);
@@ -770,17 +627,25 @@ void protocolRF::listenSignal()
 						sendPair(true);
 					}
 					transmit(0);
-					// notiy new frame received
-					YDLE_DEBUG << "New frame (TYPE_ETAT_ACK) ready to be sent :";
 //FETS						printFrame(m_receivedframe);
-					Notify (&m_receivedframe) ;
+					Notify (&m_receivedframe) ; // notiy new frame received
 				}
-				else //else send it to IHM
+				else if(m_receivedframe.type == TYPE_ETAT)
 				{
-					YDLE_DEBUG << "New frame ready to be sent :";
+					YDLE_DEBUG << "New State frame ready to be sent :";
 					printFrame(m_receivedframe);
-					// notiy new frame received
-					Notify (&m_receivedframe) ;
+					Notify (&m_receivedframe) ; // notiy new frame received
+				}
+				else if(m_receivedframe.type == TYPE_CMD)
+				{
+					YDLE_DEBUG << "New Command frame ready to be sent :";
+					printFrame(m_receivedframe);
+					Notify (&m_receivedframe) ; // notiy new frame received
+				}
+				else
+				{
+					YDLE_DEBUG << "Bad frame, trash it :";
+					printFrame(m_receivedframe);
 				}
 			}
 
@@ -1083,8 +948,13 @@ void protocolRF::Start()
 void protocolRF::InitPlugin()
 {
 	SettingsParser * pSettings = SettingsParser::Instance() ;
-	int rx_pin = pSettings->Int("rx_pin");
-	int tx_pin = pSettings->Int("tx_pin");
+	int rx_pin = pSettings->Int("rf:rx_pin");
+	int tx_pin = pSettings->Int("rf:tx_pin");
 	Init (rx_pin, tx_pin) ;
 
+}
+void protocolRF::SendMsg (Frame_t & frame)
+{
+	memcpy (&m_sendframe, &frame, sizeof (Frame_t)) ;
+	transmit () ;
 }

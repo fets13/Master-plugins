@@ -26,13 +26,16 @@ class Master
 {
 public:
 	Master (int argc, char **argv)  ;
-	void	InitPlugins () ;
-	void	InitProtocols () ;
 	void	StartComm() ;
+	void	Start() ;
 	NodesManager * NodesMgr () {return &_nodesManager ; }
 private:
-	void InitLog () ;
-	void InitRestLog();
+	void	InitLog () ;
+	void	InitRestLog();
+	void	InitPlugins () ;
+	void	InitProtocols () ;
+	void	InitFeatures () ;
+	void	StartFeatures () ;
 
 private:
 	StdErrorLogDestination *stderr_log ;
