@@ -3,6 +3,7 @@
 #define _IProtocol_H_
 
 #include "INode.h"
+#include "ydle-log.h"
 #include "SettingsParser.h"
 #include <boost/signals2.hpp>
 #include <boost/bind.hpp>
