@@ -35,8 +35,8 @@ typedef enum {
 // Définie un type de structure Signal_t
 struct Frame_t
 {
-	uint8_t sender;
 	uint8_t receptor;
+	uint8_t sender;
 	uint8_t type;
 	uint8_t taille;	// data len + crc in BYTES
 	uint8_t data[30];

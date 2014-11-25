@@ -1,0 +1,13 @@
+# Compiled Object files
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Various temporary files
+*.swp
+*.svg
+*.old
+
+# binary 
+bin/

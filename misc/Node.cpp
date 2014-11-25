@@ -44,12 +44,13 @@ void Frame_t::FormatCmd (uint8_t target, uint8_t sender, uint8_t param, uint8_t 
 void Frame_t::Dump (const char * msg)
 {
 	char sztmp[255];
-	if (msg) YDLE_DEBUG << msg ;
-	YDLE_DEBUG << "Emetteur : " << (int)sender;
-	YDLE_DEBUG << "Recepteur :" << (int)receptor;
-	YDLE_DEBUG << "Type :" << (int)type;
-	YDLE_DEBUG << "Taille :" << (int)taille;
-	YDLE_DEBUG << "CRC :" << (int)crc;
+	if (msg) YDLE_DEBUG << "\t" << msg ;
+	YDLE_DEBUG << "Sender:" << (int)sender
+				<< " Receptor:" << (int)receptor
+				<< " Type:" << (int)type
+				<< " Size:" << (int)taille
+				<< " CRC:" << std::hex << (int)crc;
+
 
 	sprintf(sztmp,"Data Hex: ");
 	for (int a=0;a<taille-1;a++)

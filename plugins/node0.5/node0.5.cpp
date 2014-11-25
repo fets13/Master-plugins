@@ -1,6 +1,6 @@
 
 #include "node0.5.h"
-#include "logging.5.h"
+#include "logging.h"
 #include <sstream>
 
 using namespace ydle ;

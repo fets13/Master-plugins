@@ -130,10 +130,10 @@ Json::Value RestBrowser::doPost(std::string url, std::string  post_data) {
 		std::stringstream request;
 		std::string req_param;
 		request << "http://" << this->url << url;
-		YDLE_DEBUG << "Full uri: " << request.str();
+		YDLE_DEBUG << "Full uri: " << request.str()
+					<< "\tPOST Param : " << post_data;
 		req_param = request.str();
 
-		YDLE_DEBUG << "POST Param" << post_data;
 		//data << post_data << "\r\n\r\n";
 
 		curl_easy_setopt(curl, CURLOPT_URL, req_param.c_str());
