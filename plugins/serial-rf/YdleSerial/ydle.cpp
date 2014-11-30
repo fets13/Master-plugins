@@ -75,7 +75,7 @@ static uint8_t pinRx = 12;		// Le numéro de la broche IO utilisée pour le modu
 static uint8_t pinTx = 10;		// Le numéro de la broche IO utilisée pour le module émetteur
 static uint8_t pinLed = 13;		// Le numéro de la broche IO utilisée pour la Led de statut
 #ifdef USE_RECEIVER_OFF
-static uint8_t pinReceiverOff = 5;		// Le numéro de la broche IO utilisée pour couper l'alim du recepteur RF pour le pas le perturber durant l'émisson
+static uint8_t pinReceiverOff = 6;		// Le numéro de la broche IO utilisée pour couper l'alim du recepteur RF pour le pas le perturber durant l'émisson
 #endif // USE_RECEIVER_OFF
 
 static uint8_t start_bit2 = 0b01000010; // Octet de start
