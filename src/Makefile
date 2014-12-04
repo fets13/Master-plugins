@@ -9,7 +9,7 @@ INC_DIR=$(BASE_DIR)/includes
 CFLAGS=-c -g -O2 -Wall -DRASPBERRY -std=gnu++0x -fpermissive -I$(INC_DIR)
 
 LDFLAGS= -lconfig++ -ljsoncpp -lmicrohttpd -lwiringPi -lcurl -lpthread -lboost_signals  -L$(DEST_DIR) -lMisc
-LDFLAGS+=  -llua5.1
+#LDFLAGS+=  -llua5.1 # not use for now
 
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(patsubst %.cpp,$(OBJS_DIR)/%.o,$(SOURCES))
