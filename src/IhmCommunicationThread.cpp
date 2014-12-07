@@ -101,7 +101,7 @@ int IhmCommunicationThread::putFrame(Frame_t & frame)
 	int index = 0;
 
 	stringstream request;
-	request << "/api/node/data";
+	request << "/nodes/datas.json";
 	INode::tNodeDataList dataList ;
 	INode * pNode = _nodesManager->GetNode (sender) ;
 	if (pNode == NULL) {
