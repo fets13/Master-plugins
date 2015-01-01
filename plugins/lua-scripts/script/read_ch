@@ -1,0 +1,36 @@
+--[[ 
+
+]]--
+function init()
+	print ("test2::init");
+	setVal ("123.value", 30) ;
+	setVal ("12.value", 33) ;
+	etat = 1
+end
+function action()
+---	print ("test2");
+---print ("etat:", etat)
+	if etat == 1 then
+		temp123 = getVal("123.value")
+		temp12 = getVal("12.value")
+print ("t12:", temp12, "t123:", temp123)
+		if temp123 >= temp12 then
+			print (" CONDITION REACHED : ACTION attente !!!!")
+			etat = 2
+			timeStart = getTime() ;
+	--		SetVal ("monTimer", getTime)
+		end
+	elseif etat == 2 then
+			duration = getTime() - timeStart ;
+---	print ("duration:", duration)
+			if duration  >= 5 then
+				print (" CONDITION ENDED !!!!")
+					etat = 3
+			end
+	--- attente 10 s
+	elseif etat == 3 then
+		setVal ("temp123", 22)
+		etat = 1
+		testPlugin()
+	end
+end
