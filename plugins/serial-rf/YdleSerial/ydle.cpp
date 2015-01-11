@@ -386,8 +386,9 @@ void ydle::send(Frame_t *frame)
 
 	digitalWrite(pinLed, HIGH);   // on allume la Led pour indiquer une émission
 
+	// add crc BYTE
+	frame->taille++;
 	// calcul crc
-	frame->taille++; // add crc BYTE
 	frame->crc = computeCrc(frame);
 
 #ifdef TODO
@@ -413,10 +414,6 @@ void ydle::send(Frame_t *frame)
 #endif
 	}
 	memset((void*)&frameToSend, 0x0, 40);
-	// add crc BYTE
-	frame->taille++;
-	// calcul crc
-	frame->crc = computeCrc(frame);
 
 	uint8_t index =0;
 
