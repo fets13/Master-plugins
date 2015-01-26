@@ -37,7 +37,6 @@ public:
 
 private:
 
-   void Sending(log_message & message);
    void Sending(Json::Value & message);
    std::queue<log_message> messages;
    bool stop;
