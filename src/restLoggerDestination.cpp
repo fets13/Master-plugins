@@ -103,53 +103,6 @@ size_t restLoggerDestination::responseCallback( char *response, size_t size, siz
 	return realsize;
 }
 
-void restLoggerDestination::Sending(log_message & message){
-	CURL *curl;
-	CURLcode res;
-	char *error_buf;
-	std::stringstream data;
-	std::string spdata;
-	char response;
-	error_buf = (char*)malloc(sizeof(char) * CURL_ERROR_SIZE * 2);
-	if(error_buf == NULL){
-		return;
-	}
-	curl = curl_easy_init();
-	if(curl) {
-		// Build get request
-		std::stringstream request;
-		std::string req_param;
-		request << "http://" << this->hub_url << "/api/logs/add";
-		req_param = request.str();
-
-		char *temp = curl_escape(message.log_line.c_str(), message.log_line.length());
-		data << "message=" << temp << "&level=" << message.level << "\r\n\r\n";
-
-		char *form = (char*)malloc(data.str().length() * sizeof(char*));
-		strcpy(form, data.str().c_str());
-
-		curl_easy_setopt(curl, CURLOPT_URL, req_param.c_str());
-		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, form);
-		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buf);
-		curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
-
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &ydle::restLoggerDestination::responseCallback);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-
-		res = curl_easy_perform(curl);
-
-		if(res != CURLE_OK){
-			std::cout << "curl_easy_perform() failed: " << curl_easy_strerror(res);
-			std::cout << "Error is :" << error_buf;
-		}
-		curl_easy_cleanup(curl);
-		free(error_buf);
-		free(temp);
-		free(form);
-	}
-}
-
 void restLoggerDestination::Write(log_level level, const string &log_line){
 	if(level <= this->_level){
 		log_message m;
